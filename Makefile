@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -fopenmp
 TARGET = SimpleSW
 SRC = SimpleSW.c fasta_parser.c
 OBJ = $(SRC:.c=.o)

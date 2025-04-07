@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <omp.h>
 #include "fasta_parser.h"
 
 int MATCH = 2;
@@ -20,6 +21,7 @@ int MISMATCH = -1;
 int GAP = -2;
 char QUERY[1024];
 char DATABASE[1024];
+static int n_procs = 0;
 
 int iBlosum62[] = {
 //   A   B   C   D   E   F   G   H   I   K   L   M   N   P   Q   R   S   T   V   W   Y   Z   X   *
@@ -105,21 +107,19 @@ void print_results(const char* seq1, const char* seq2, int** H, int rows, int co
         }
         printf("\n");
     }
-
 }
 
 int* optimizeCharSeq(const char* seq, int length) {
     int* queryInt = malloc(length * sizeof(int));
+
+    #pragma omp parallel for num_threads(n_procs) schedule(static)
     for (int i = 0; i < length; i++) {
-        queryInt[i] = (int)((seq[i] == 'J') ? 'Z' + 1 : seq[i]);
-        queryInt[i] = (int)((seq[i] == 'O') ? 'Z' + 1 : seq[i]);
-        queryInt[i] = (int)((seq[i] == 'U') ? 'Z' + 1 : seq[i]);
-        int diff = (int)'A';
-        diff = (int)(seq[i] > 'J' ? diff + 1 : diff);
-        diff = (int)(seq[i] > 'O' ? diff + 1 : diff);
-        diff = (int)(seq[i] > 'U' ? diff + 1 : diff);
-        queryInt[i] -= diff;
+        char c = seq[i];
+        int q = (c == 'J' || c == 'O' || c == 'U') ? 'Z' + 1 : c;
+        int diff = 'A' + (c > 'J') + (c > 'O') + (c > 'U');
+        queryInt[i] = q - diff;
     }
+
     return queryInt;
 }
 
@@ -153,6 +153,8 @@ int main(int argc, char **argv){
         fprintf(stderr, "Usage: %s -m <match> -s <mismatch> -g <gap> -q <query_fasta_file> -d <database_fasta_file>\nmatch, mismatch and gap dont need to be set\n", argv[0]);
         return 1;
     }
+
+    n_procs = omp_get_max_threads();
 
     FASTA_Parser *query_parser = fasta_init(QUERY);
     if (!query_parser) return 1;
