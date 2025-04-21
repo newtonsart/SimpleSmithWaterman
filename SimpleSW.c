@@ -16,6 +16,7 @@
 #include <omp.h>
 #include "fasta_parser.h"
 
+int GAP = -4;
 char QUERY[1024];
 char DATABASE[1024];
 static int n_procs = 0;
