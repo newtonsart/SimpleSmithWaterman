@@ -14,6 +14,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <omp.h>
+#include <time.h>
 #include "fasta_parser.h"
 
 int GAP = -4;
@@ -163,6 +164,7 @@ int main(int argc, char **argv)
             return 1;
 
         FASTA_Entry db;
+        clock_t start_time = clock(); // Inicio del temporizador
 
         while (fasta_next(db_parser, &db))
         {
@@ -189,11 +191,16 @@ int main(int argc, char **argv)
             free_matrix(H, rows);
             free(dbInt);
         }
+        clock_t end_time = clock();
+
         printf("\nMax score found for this sequence: %d at (%d, %d)\n", max_score, max_i, max_j);
         printf("Best match found in database:\n %s\n\n", max_db);
+        printf("Time taken for this sequence: %.2f seconds\n", (double)(end_time - start_time) / CLOCKS_PER_SEC);
+
         comp_counter = 0;
 
         free(queryInt);
+        free(max_db);
 
         fasta_close(db_parser);
     }
