@@ -69,18 +69,22 @@ void fill_matrix(int *H, const int *seq1, const int *seq2, int rows, int cols, i
 
     for (int i = 1; i < rows; i++) {
         for (int j = 1; j < cols; j++) {
-            int match_score = H[(i-1) * cols + (j-1)] + score(seq1[i-1], seq2[j-1]);
-            int delete = H[(i-1) * cols + j] + GAP;
-            int insert = H[i * cols + (j-1)] + GAP;
+            int match_score = H[(i-1)*cols + (j-1)] + score(seq1[i-1], seq2[j-1]);
+            int delete = H[(i-1)*cols + j] + GAP;
+            int insert = H[i*cols + (j-1)] + GAP;
+            
+            // Asegurar que el valor mínimo es 0
             int max_val = 0;
-            max_val = (match_score > delete) ? match_score : delete;
-            max_val = (max_val > insert) ? max_val : insert;
-            H[i * cols + j] = max_val;
-
-            if (H[i * cols + j] > *max_score) {
-                *max_score = H[i * cols + j];
-                *max_i = i;
-                *max_j = j;
+            max_val = (match_score > max_val) ? match_score : max_val;
+            max_val = (delete > max_val) ? delete : max_val;
+            max_val = (insert > max_val) ? insert : max_val;
+            
+            H[i*cols + j] = max_val;  // Nunca será negativo
+            
+            if (H[i*cols + j] > *max_score) {
+               *max_score = H[i*cols + j];
+               *max_i = i;
+               *max_j = j;
             }
         }
     }
